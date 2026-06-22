@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Educational AI Tutor — Research Study</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- =================================================================
+       SCREEN 1 — INTRODUCTION / CONSENT / DEMOGRAPHICS
+       ================================================================= -->
+  <section id="screen-intro" class="screen active">
+    <div class="card">
+      <h1>Educational AI Tutor — Research Study</h1>
+      <p class="lead">
+        Thank you for taking part. This is a short research study evaluating a new
+        <strong>educational AI tutor</strong>. You will answer a set of brief
+        logical-reasoning questions. The whole thing takes only a few minutes.
+      </p>
+      <p>
+        Your responses are recorded for research purposes only. There are no right
+        answers we are testing <em>you</em> on — we are studying how people work
+        through the questions. Please answer as you genuinely see fit.
+      </p>
+
+      <div class="field">
+        <label for="age-range">Before we begin, what is your age range?</label>
+        <select id="age-range">
+          <option value="" disabled selected>Select your age range…</option>
+          <option value="under-18">Under 18</option>
+          <option value="18-24">18–24</option>
+          <option value="25-34">25–34</option>
+          <option value="35-44">35–44</option>
+          <option value="45-54">45–54</option>
+          <option value="55-64">55–64</option>
+          <option value="65-plus">65 or older</option>
+          <option value="prefer-not">Prefer not to say</option>
+        </select>
+        <p class="field-error" id="age-error" hidden>Please select an age range to continue.</p>
+      </div>
+
+      <label class="consent">
+        <input type="checkbox" id="consent-check" />
+        <span>I understand this is a research study and consent to participate.</span>
+      </label>
+
+      <button class="btn btn-primary" id="begin-btn">Begin</button>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       SCREEN 2 — GROUP-SPECIFIC BRIEFING
+       ================================================================= -->
+  <section id="screen-briefing" class="screen">
+    <div class="card">
+      <h1 id="briefing-title">Your Session</h1>
+      <div id="briefing-body"></div>
+      <div class="instructions">
+        <h2>How it works</h2>
+        <ul id="instructions-list"></ul>
+      </div>
+      <button class="btn btn-primary" id="start-quiz-btn">Start the quiz</button>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       SCREEN 3 — QUIZ
+       ================================================================= -->
+  <section id="screen-quiz" class="screen">
+    <header class="topbar">
+      <div class="topbar-title">Educational AI Tutor — Reasoning Quiz</div>
+      <div class="topbar-progress"><span id="progress-text">Question 1 of 14</span></div>
+    </header>
+
+    <div class="quiz-layout">
+      <!-- Main question column -->
+      <main class="quiz-main">
+        <nav class="qnav" id="qnav" aria-label="Question navigator"></nav>
+
+        <article class="question-card">
+          <div class="question-meta">
+            <span id="q-number" class="q-number">Question 1</span>
+          </div>
+          <h2 class="question-prompt" id="q-prompt"></h2>
+          <figure class="question-figure" id="q-figure" hidden>
+            <img id="q-image" alt="Question figure" />
+          </figure>
+          <div class="choices" id="q-choices"></div>
+        </article>
+
+        <div class="quiz-controls">
+          <button class="btn btn-ghost" id="prev-btn">← Previous</button>
+          <button class="btn btn-ghost" id="next-btn">Next →</button>
+          <button class="btn btn-primary" id="finish-btn">Finish &amp; submit</button>
+        </div>
+      </main>
+
+      <!-- AI sidebar (only shown for the AI group) -->
+      <aside class="ai-sidebar" id="ai-sidebar" aria-label="AI tutor">
+        <div class="ai-header">
+          <div class="ai-dot"></div>
+          <div>
+            <div class="ai-name">AI Tutor</div>
+            <div class="ai-status" id="ai-status">Online</div>
+          </div>
+          <div class="ai-lock" title="The assistant stays open for the whole study">🔒</div>
+        </div>
+
+        <div class="ai-body" id="ai-body">
+          <!-- thinking / response injected here -->
+        </div>
+
+        <div class="ai-confidence" id="ai-confidence" hidden>
+          <p class="conf-label">How confident are you in the AI's response?</p>
+          <div class="likert" id="likert"></div>
+          <div class="likert-ends">
+            <span>1 · Not at all</span>
+            <span>5 · Completely</span>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- =================================================================
+       SCREEN 4 — COMPLETION
+       ================================================================= -->
+  <section id="screen-done" class="screen">
+    <div class="card">
+      <h1>All done — thank you!</h1>
+      <p class="lead">Your responses have been recorded. You may now close this window.</p>
+
+      <div class="done-code">
+        <span>Completion code</span>
+        <strong id="completion-code">—</strong>
+      </div>
+
+      <div id="upload-status" class="upload-status" hidden></div>
+
+      <details class="data-details">
+        <summary>Researcher data (for the study team)</summary>
+        <p class="muted">
+          A copy of this participant's full data was downloaded automatically. You can
+          also re-download it or copy it below.
+        </p>
+        <div class="done-controls">
+          <button class="btn btn-ghost" id="download-json">Download JSON</button>
+          <button class="btn btn-ghost" id="download-csv">Download events CSV</button>
+          <button class="btn btn-ghost" id="copy-json">Copy JSON</button>
+        </div>
+        <textarea id="data-dump" readonly></textarea>
+      </details>
+    </div>
+  </section>
+
+  <script src="questions.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

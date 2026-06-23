@@ -8,7 +8,7 @@
 // central collector (e.g. a Google Apps Script web-app URL, Formspree, or any
 // endpoint that accepts a JSON POST). Leave "" to rely on the auto-download
 // + localStorage copy only. See README.md for setup.
-const DATA_ENDPOINT = "https://script.google.com/macros/s/AKfycbw25xfhGyPmHPfK9ZqcAa0ZqfaEEAA-u0UU5ji8chjWNjoKKYCdoZfi-OAkzPwIEEhO/exec";
+const DATA_ENDPOINT = "";
 
 // How long the AI "thinks" before revealing its predetermined answer (ms).
 const AI_THINK_MS = 2000;
@@ -491,10 +491,8 @@ function finishStudy() {
 
   // surface to the done screen
   document.getElementById("completion-code").textContent = session.participantId;
-  document.getElementById("data-dump").value = JSON.stringify(session, null, 2);
 
-  autoDownload();      // always give the researcher a local copy
-  sendToEndpoint();    // optional central collection
+  sendToEndpoint();
 
   showScreen("screen-done");
 }
@@ -554,14 +552,6 @@ function buildSummary() {
 
 /* ------------------------- EXPORT / DELIVERY ---------------------------- */
 
-function autoDownload() {
-  downloadFile(
-    `rwc-ai-study_${session.participantId}.json`,
-    JSON.stringify(session, null, 2),
-    "application/json"
-  );
-}
-
 function sendToEndpoint() {
   const statusEl = document.getElementById("upload-status");
   if (!DATA_ENDPOINT) {
@@ -593,43 +583,6 @@ function sendToEndpoint() {
   });
 }
 
-document.getElementById("download-json").addEventListener("click", autoDownload);
-document.getElementById("download-csv").addEventListener("click", () =>
-  downloadFile(`rwc-ai-study_${session.participantId}_events.csv`, eventsToCsv(), "text/csv"));
-document.getElementById("copy-json").addEventListener("click", () => {
-  const ta = document.getElementById("data-dump");
-  ta.select();
-  navigator.clipboard.writeText(ta.value).catch(() => document.execCommand("copy"));
-});
-
-function eventsToCsv() {
-  const header = [
-    "participantId", "group", "age",
-    "eventType", "qid", "tEpochMs", "tRelMs", "iso", "details"
-  ];
-  const rows = session.events.map(e => [
-    session.participantId, session.group, session.age,
-    e.type, e.qid == null ? "" : e.qid,
-    e.tEpoch, e.tRel == null ? "" : e.tRel, e.iso,
-    JSON.stringify(e.data)
-  ].map(csvCell).join(","));
-  return header.join(",") + "\n" + rows.join("\n");
-}
-
-function csvCell(v) {
-  const s = String(v == null ? "" : v);
-  return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
-}
-
-function downloadFile(name, content, mime) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = name;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1500);
-}
 
 /* ------------------------------ UTIL ------------------------------------ */
 

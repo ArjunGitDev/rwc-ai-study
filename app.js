@@ -8,7 +8,7 @@
 // central collector (e.g. a Google Apps Script web-app URL, Formspree, or any
 // endpoint that accepts a JSON POST). Leave "" to rely on the auto-download
 // + localStorage copy only. See README.md for setup.
-const DATA_ENDPOINT = "https://script.google.com/macros/s/AKfycbzTcXRXiR2DeGaQeCobXVdoPCWxBIwZXlTYaG_6zhvK1lqyS7McpX8BzrIy92VwfI2m-g/exec";
+const DATA_ENDPOINT = "";
 
 // How long the AI "thinks" before revealing its predetermined answer (ms).
 const AI_THINK_MS = 2000;
@@ -389,8 +389,11 @@ function handleAiForQuestion(q) {
     return;
   }
 
-  // Fresh: show "thinking" for AI_THINK_MS, then reveal
+  // Fresh: show "thinking" for AI_THINK_MS, then reveal. Hide the confidence
+  // panel and reset the Likert so no rating from a previous question lingers,
+  // and so it can't be selected before the AI has actually responded.
   aiConfWrap.hidden = true;
+  setLikert(null, /*enabled=*/false);
   aiStatus.textContent = "Thinking…";
   aiStatus.classList.add("thinking");
   aiBody.innerHTML = `
@@ -429,13 +432,20 @@ function showAiResponse(q, firstReveal) {
   // The AI has now answered, so the participant may select / change their answer.
   setChoicesLocked(false);
 
-  // Confidence widget for this question's AI response
+  // Confidence widget for this question's AI response: show it, enable it, and
+  // restore only THIS question's saved rating (null for a fresh question).
   aiConfWrap.hidden = false;
-  const saved = session.confidence[q.id];
-  [...document.getElementById("likert").children].forEach(b =>
-    b.classList.toggle("selected", saved != null && +b.dataset.val === saved));
+  setLikert(session.confidence[q.id] ?? null, /*enabled=*/true);
 
   if (firstReveal) logEvent("ai_confidence_shown", { qid: q.id });
+}
+
+// Reflect a Likert value (or null to clear) and enable/disable the buttons.
+function setLikert(value, enabled) {
+  [...document.getElementById("likert").children].forEach(b => {
+    b.classList.toggle("selected", value != null && +b.dataset.val === value);
+    b.disabled = !enabled;
+  });
 }
 
 /* ---------------------------- CONFIDENCE -------------------------------- */
@@ -454,6 +464,9 @@ function buildLikert() {
 
 function setConfidence(val) {
   const q = QUESTIONS[currentIndex];
+  // Can't rate confidence in a response that hasn't been given yet.
+  if (session.aiShown[q.id] == null) return;
+
   const previous = session.confidence[q.id];
   session.confidence[q.id] = val;
   [...document.getElementById("likert").children].forEach(b =>

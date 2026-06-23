@@ -362,6 +362,9 @@ body:not(.has-ai) .ai-sidebar { display: none; }
   flex-wrap: wrap;
   gap: 8px 18px;
 }
+/* `display: flex` above would otherwise override the [hidden] attribute, so the
+   panel must be explicitly hidden while the AI is still "thinking". */
+.ai-confidence[hidden] { display: none; }
 .conf-label { font-size: 0.95rem; font-weight: 600; margin: 0; }
 .likert { display: flex; gap: 8px; }
 .likert button {
@@ -376,6 +379,8 @@ body:not(.has-ai) .ai-sidebar { display: none; }
 }
 .likert button:hover { border-color: var(--accent); }
 .likert button.selected { background: var(--accent); border-color: var(--accent); color: #fff; }
+.likert button:disabled { opacity: 0.5; cursor: not-allowed; }
+.likert button:disabled:hover { border-color: var(--line-strong); }
 .likert-ends {
   display: flex;
   gap: 14px;

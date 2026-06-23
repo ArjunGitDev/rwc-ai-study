@@ -97,27 +97,23 @@ beginBtn.addEventListener("click", () => {
   ageError.hidden = true;
   if (!consentBox.checked) { consentBox.focus(); return; }
 
-  // ---- THE MOMENT THEY START: capture hi-res epoch time & assign group ----
-  const startEpoch = epochHiRes();           // fractional epoch milliseconds
-  // Preserve as many decimal places as possible by converting to an integer
-  // number of MICROseconds since the epoch, then test that integer's parity.
-  const micros = Math.floor(startEpoch * 1000);   // microseconds since epoch
-  const parity = micros % 2;                       // 0 = even, 1 = odd
-  const group  = (parity === 0) ? "AI" : "control"; // even -> AI, odd -> no AI
+  // ---- THE MOMENT THEY START: assign group with a uniform 50/50 draw ----
+  const startEpoch = epochHiRes();           // hi-res epoch ms, kept for timing
+  const roll  = Math.random();               // uniform random in [0, 1)
+  const group = (roll < 0.5) ? "AI" : "control";
 
-  session.participantId = makeParticipantId(micros);
+  session.participantId = makeParticipantId(startEpoch);
   session.studyStartEpoch = startEpoch;
   session.startedAtIso = new Date().toISOString();
   session.age = ageVal;
   session.group = group;
   session.assignment = {
-    epochMsHiRes: startEpoch,        // e.g. 1718900000123.456
-    epochMsString: startEpoch.toFixed(6),
-    microsSinceEpoch: micros,        // integer used for the parity test
-    modulo: 2,
-    parity: parity,                  // 0 even / 1 odd
+    method: "Math.random()",
+    roll: roll,                      // the raw draw, stored for auditability
+    threshold: 0.5,
     result: group,
-    rule: "even -> AI, odd -> control"
+    rule: "roll < 0.5 -> AI, else control",
+    startEpochMs: startEpoch
   };
   session.environment = collectEnvironment();
 
@@ -130,7 +126,8 @@ beginBtn.addEventListener("click", () => {
   showScreen("screen-briefing");
 });
 
-function makeParticipantId(micros) {
+function makeParticipantId(startEpoch) {
+  const micros = Math.floor(startEpoch * 1000);  // timestamp component, for uniqueness
   const rand = Math.random().toString(36).slice(2, 7);
   return "P-" + micros.toString(36).slice(-7) + "-" + rand;
 }

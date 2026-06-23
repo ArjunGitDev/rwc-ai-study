@@ -8,7 +8,7 @@
 // central collector (e.g. a Google Apps Script web-app URL, Formspree, or any
 // endpoint that accepts a JSON POST). Leave "" to rely on the auto-download
 // + localStorage copy only. See README.md for setup.
-const DATA_ENDPOINT = "https://script.google.com/macros/s/AKfycbzTcXRXiR2DeGaQeCobXVdoPCWxBIwZXlTYaG_6zhvK1lqyS7McpX8BzrIy92VwfI2m-g/exec";
+const DATA_ENDPOINT = "";
 
 // How long the AI "thinks" before revealing its predetermined answer (ms).
 const AI_THINK_MS = 2000;
@@ -538,6 +538,7 @@ function finishStudy() {
 }
 
 function buildSummary() {
+  const finishEpoch = epochHiRes(); // caps the interval of any still-open question
   let score = 0;
   const perQuestion = QUESTIONS.map(q => {
     const final = session.answers[q.id];
@@ -550,13 +551,23 @@ function buildSummary() {
     const aiResp = session.events.find(e => e.type === "ai_response" && e.qid === q.id);
     const firstClickAfterAi = aiResp ? clicks.find(c => c.tEpoch >= aiResp.tEpoch) : null;
 
-    // "Time to answer": for the AI group, ms from the AI response to the first
-    // answer click (the fact-checking latency / key DV); for the control group,
-    // ms from first viewing the question to the first answer click.
-    const msAfterAi  = firstClickAfterAi ? firstClickAfterAi.data.msSinceAiResponse : null;
-    const msFromView = (firstView && clicks.length)
-      ? +(clicks[0].tEpoch - firstView.tEpoch).toFixed(1) : null;
-    const timeMs = session.group === "AI" ? msAfterAi : msFromView;
+    // The exact spans of wall-clock time this question was actually the open
+    // question (paired question_view -> question_leave). All timing below counts
+    // ONLY this on-screen time, so skipping to other questions and coming back
+    // never inflates it.
+    const intervals = activeIntervals(q.id, finishEpoch);
+    const activeMsTotal = +sumIntervals(intervals).toFixed(1);
+
+    // "Time to answer", measured in on-screen time only:
+    //   AI group  -> from the AI's response to the first answer after it
+    //   control   -> from first opening the question to the first answer.
+    const startEpoch  = session.group === "AI"
+      ? (aiResp ? aiResp.tEpoch : null)
+      : (firstView ? firstView.tEpoch : null);
+    const answerEpoch = session.group === "AI"
+      ? (firstClickAfterAi ? firstClickAfterAi.tEpoch : null)
+      : (clicks.length ? clicks[0].tEpoch : null);
+    const timeMs = activeOverlapMs(intervals, startEpoch, answerEpoch);
 
     return {
       qid: q.id,
@@ -575,8 +586,7 @@ function buildSummary() {
       confidence: session.group === "AI" ? (session.confidence[q.id] ?? null) : null,
       numAnswerClicks: clicks.length,
       numAnswerChanges: Math.max(0, clicks.filter(c => c.data.isChange).length),
-      msToFirstAnswerAfterAi: msAfterAi,
-      msFirstAnswerFromView: msFromView,
+      activeMsTotal: activeMsTotal,
       timeMs: timeMs
     };
   });
@@ -588,6 +598,40 @@ function buildSummary() {
     total: QUESTIONS.length,
     perQuestion: perQuestion
   };
+}
+
+// Reconstruct every [start, end] span during which `qid` was the open question,
+// by pairing its question_view (enter) and question_leave (exit) events. A view
+// left open at the end (the question on screen at submit) is closed at endEpoch.
+function activeIntervals(qid, endEpoch) {
+  let openStart = null;
+  const intervals = [];
+  session.events.forEach(e => {
+    if (e.qid !== qid) return;
+    if (e.type === "question_view") {
+      if (openStart == null) openStart = e.tEpoch;       // ignore a repeat view while open
+    } else if (e.type === "question_leave") {
+      if (openStart != null) { intervals.push([openStart, e.tEpoch]); openStart = null; }
+    }
+  });
+  if (openStart != null) intervals.push([openStart, endEpoch]);
+  return intervals;
+}
+
+function sumIntervals(intervals) {
+  return intervals.reduce((s, iv) => s + Math.max(0, iv[1] - iv[0]), 0);
+}
+
+// On-screen ms between epochs `a` and `c`, counting only time inside `intervals`
+// (i.e. while the question was actually open). null if either bound is missing.
+function activeOverlapMs(intervals, a, c) {
+  if (a == null || c == null) return null;
+  let sum = 0;
+  intervals.forEach(iv => {
+    const lo = Math.max(iv[0], a), hi = Math.min(iv[1], c);
+    if (hi > lo) sum += hi - lo;
+  });
+  return +sum.toFixed(1);
 }
 
 /* ------------------------- EXPORT / DELIVERY ---------------------------- */

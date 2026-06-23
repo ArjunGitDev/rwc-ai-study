@@ -8,7 +8,7 @@
 // central collector (e.g. a Google Apps Script web-app URL, Formspree, or any
 // endpoint that accepts a JSON POST). Leave "" to rely on the auto-download
 // + localStorage copy only. See README.md for setup.
-const DATA_ENDPOINT = "";
+const DATA_ENDPOINT = "https://script.google.com/macros/s/AKfycbzTcXRXiR2DeGaQeCobXVdoPCWxBIwZXlTYaG_6zhvK1lqyS7McpX8BzrIy92VwfI2m-g/exec";
 
 // How long the AI "thinks" before revealing its predetermined answer (ms).
 const AI_THINK_MS = 2000;

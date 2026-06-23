@@ -210,6 +210,32 @@ body:not(.has-ai) .ai-sidebar { display: none; }
   border-radius: 10px;
 }
 
+/* Persistent reminder that answers are editable until submission */
+.change-hint {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  background: var(--accent-soft);
+  border: 1px solid #d8e3ff;
+  border-left: 3px solid var(--accent);
+  border-radius: 8px;
+  color: var(--accent-ink);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+/* Shown while the AI group's choices are locked (AI still "thinking") */
+.lock-note {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-left: 3px solid #f59e0b;
+  border-radius: 8px;
+  color: #b45309;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 /* ---------- Choices ---------- */
 .choices { display: flex; flex-direction: column; gap: 10px; }
 .choice {
@@ -227,6 +253,9 @@ body:not(.has-ai) .ai-sidebar { display: none; }
   transition: border-color 0.12s ease, background 0.12s ease;
 }
 .choice:hover { border-color: var(--accent); background: #fafbff; }
+.choices.locked { opacity: 0.55; }
+.choice:disabled { cursor: not-allowed; }
+.choice:disabled:hover { border-color: var(--line-strong); background: #fff; }
 .choice .marker {
   flex: 0 0 auto;
   width: 22px;
@@ -305,6 +334,12 @@ body:not(.has-ai) .ai-sidebar { display: none; }
   color: var(--accent-ink);
   margin-bottom: 6px;
 }
+.ai-disclaimer {
+  margin: 0 0 8px;
+  color: #dc2626;
+  font-size: 0.85rem;
+  font-style: italic;
+}
 
 /* thinking dots */
 .thinking-row { display: flex; align-items: center; gap: 8px; color: var(--ink-soft); font-size: 0.92rem; }
@@ -368,19 +403,6 @@ body:not(.has-ai) .ai-sidebar { display: none; }
 .upload-status.ok { background: #eef7f0; color: var(--good); border: 1px solid #bfe2c8; }
 .upload-status.warn { background: #fff7e6; color: #8a6d1b; border: 1px solid #f0e0b0; }
 
-.data-details { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
-.data-details summary { cursor: pointer; font-weight: 600; color: var(--ink-soft); }
-.done-controls { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
-#data-dump {
-  width: 100%;
-  height: 220px;
-  font-family: ui-monospace, "SF Mono", Menlo, monospace;
-  font-size: 0.78rem;
-  border: 1px solid var(--line-strong);
-  border-radius: 8px;
-  padding: 10px;
-  resize: vertical;
-}
 
 /* =========================================================================
    RESPONSIVE

@@ -8,7 +8,7 @@
 // central collector (e.g. a Google Apps Script web-app URL, Formspree, or any
 // endpoint that accepts a JSON POST). Leave "" to rely on the auto-download
 // + localStorage copy only. See README.md for setup.
-const DATA_ENDPOINT = "https://script.google.com/macros/s/AKfycbw25xfhGyPmHPfK9ZqcAa0ZqfaEEAA-u0UU5ji8chjWNjoKKYCdoZfi-OAkzPwIEEhO/exec";
+const DATA_ENDPOINT = "";
 
 // How long the AI "thinks" before revealing its predetermined answer (ms).
 const AI_THINK_MS = 2000;
@@ -202,6 +202,8 @@ const elImage    = document.getElementById("q-image");
 const elChoices  = document.getElementById("q-choices");
 const elProgress = document.getElementById("progress-text");
 const elQnav     = document.getElementById("qnav");
+const elChangeHint = document.getElementById("change-hint");
+const elLockNote   = document.getElementById("lock-note");
 
 function buildNavigator() {
   elQnav.innerHTML = "";
@@ -313,9 +315,27 @@ function renderChoices(q) {
     btn.addEventListener("click", () => selectAnswer(q, idx));
     elChoices.appendChild(btn);
   });
+
+  // AI group: keep the answer choices locked until the AI tutor has actually
+  // given its output, so nobody can answer before seeing it. This removes every
+  // "answered before the AI" glitch (undefined time-to-answer, skipped
+  // confidence rating, answer_click logged before ai_response, etc.).
+  const locked = session.group === "AI" && session.aiShown[q.id] == null;
+  setChoicesLocked(locked);
+}
+
+// Enable/disable the answer choices and swap the helper note accordingly.
+function setChoicesLocked(locked) {
+  [...elChoices.children].forEach(b => { b.disabled = locked; });
+  elChoices.classList.toggle("locked", locked);
+  elLockNote.hidden = !locked;
+  elChangeHint.hidden = locked;
 }
 
 function selectAnswer(q, idx) {
+  // Defensive: never accept an answer before the AI has responded (AI group).
+  if (session.group === "AI" && session.aiShown[q.id] == null) return;
+
   const previous = session.answers[q.id];
   const changed = previous != null && previous !== idx;
   session.answers[q.id] = idx;
@@ -340,8 +360,11 @@ function selectAnswer(q, idx) {
 }
 
 function updateNavButtons() {
+  const isLast = currentIndex === QUESTIONS.length - 1;
   document.getElementById("prev-btn").disabled = currentIndex === 0;
-  document.getElementById("next-btn").disabled = currentIndex === QUESTIONS.length - 1;
+  document.getElementById("next-btn").disabled = isLast;
+  // Finish & submit only appears on the final question.
+  document.getElementById("finish-btn").hidden = !isLast;
 }
 
 document.getElementById("prev-btn").addEventListener("click", () => goToQuestion(currentIndex - 1, "prev"));
@@ -399,8 +422,12 @@ function showAiResponse(q, firstReveal) {
   aiBody.innerHTML = `
     <div class="ai-bubble">
       <span class="ai-bubble-label">AI tutor's answer</span>
+      <p class="ai-disclaimer">This AI tutor is experimental and may make mistakes.</p>
       ${escapeHtml(q.ai.text)}
     </div>`;
+
+  // The AI has now answered, so the participant may select / change their answer.
+  setChoicesLocked(false);
 
   // Confidence widget for this question's AI response
   aiConfWrap.hidden = false;
@@ -552,35 +579,35 @@ function buildSummary() {
 
 /* ------------------------- EXPORT / DELIVERY ---------------------------- */
 
+let endpointSent = false; // guard against any double submission
+
 function sendToEndpoint() {
   const statusEl = document.getElementById("upload-status");
   if (!DATA_ENDPOINT) {
     statusEl.hidden = false;
     statusEl.className = "upload-status warn";
     statusEl.textContent =
-      "No central collector is configured. A data file was downloaded to this device. " +
-      "Please send it to the research team.";
+      "No central collector is configured, so this response is stored on this device only. " +
+      "Please contact the research team.";
     return;
   }
+  if (endpointSent) return;
+  endpointSent = true;
+
+  // Send EXACTLY ONE request. Apps Script web apps don't return CORS headers, so
+  // the response can't be read anyway; a "simple" no-cors text/plain POST avoids
+  // the CORS preflight and the retry-fallback that previously caused duplicate or
+  // stray rows in the sheet. The server also de-dupes by participant id.
   fetch(DATA_ENDPOINT, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
     body: JSON.stringify(session)
-  }).then(() => {
-    statusEl.hidden = false;
-    statusEl.className = "upload-status ok";
-    statusEl.textContent = "Your responses were submitted to the research team. Thank you!";
-  }).catch(() => {
-    // Fall back to no-cors fire-and-forget (common for Apps Script endpoints)
-    fetch(DATA_ENDPOINT, {
-      method: "POST", mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(session)
-    }).catch(() => {});
-    statusEl.hidden = false;
-    statusEl.className = "upload-status ok";
-    statusEl.textContent = "Your responses were submitted. A backup file was also downloaded.";
-  });
+  }).catch(() => {});
+
+  statusEl.hidden = false;
+  statusEl.className = "upload-status ok";
+  statusEl.textContent = "Your responses were submitted to the research team. Thank you!";
 }
 
 

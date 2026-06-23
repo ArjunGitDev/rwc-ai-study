@@ -160,13 +160,13 @@ function renderBriefing(group) {
       <p>You have been assigned to <strong>test our new educational AI tutor</strong>.
       As you work through the quiz, the AI assistant will appear in a panel on the
       right and offer its answer to each question.</p>
-      <p>The assistant stays open for the entire study, it can't be closed or
+      <p>The assistant stays open for the entire study. It cannot be closed or
       minimized. After it responds, we'll ask how confident you are in its answer.
       The final answer you give to each question is entirely your own choice.</p>`;
     list.innerHTML = `
       <li>The AI takes a couple of seconds to "think", then shows its answer.</li>
-      <li>After each AI response, rate your confidence in it on a 1-5 scale.</li>
-      <li>Select the answer <em>you</em> believe is correct, you can change it any time.</li>
+      <li>After each AI response, rate your confidence in it on a 1–5 scale.</li>
+      <li>Select the answer <em>you</em> believe is correct. You can change it any time.</li>
       <li>You can jump between questions freely using the numbered navigator.</li>
       <li>Click <strong>Finish &amp; submit</strong> when you're done.</li>`;
   } else {
@@ -568,7 +568,7 @@ function sendToEndpoint() {
     statusEl.hidden = false;
     statusEl.className = "upload-status warn";
     statusEl.textContent =
-      "No central collector is configured — a data file was downloaded to this device. " +
+      "No central collector is configured. A data file was downloaded to this device. " +
       "Please send it to the research team.";
     return;
   }

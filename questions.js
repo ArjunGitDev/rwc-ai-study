@@ -130,14 +130,14 @@ const QUESTIONS = [
   {
     id: 9,
     phase: "Recovery",
-    prompt: "In this 3×3 matrix, each grid follows a pattern. Which option (A–F) completes the bottom-right cell?",
+    prompt: "In this 3×3 matrix, each grid follows a pattern. Which option (A–F) completes the bottom right cell?",
     image: "images/q9_new.png",
     choices: ["A", "B", "C", "D", "E", "F"],
     correctIndex: 4,
     ai: {
       correct: true,
       answerIndex: 4,
-      text: "E. Reading each row, the right-hand grid is the overlay of the first two. The last row overlays a filled top row with a filled bottom row, so the missing grid has its top and bottom rows filled and the middle empty. That's option E."
+      text: "E. Reading each row, the right hand grid is the overlay of the first two. The last row overlays a filled top row with a filled bottom row, so the missing grid has its top and bottom rows filled and the middle empty. That's option E."
     }
   },
   {
@@ -169,7 +169,7 @@ const QUESTIONS = [
   {
     id: 12,
     phase: "Breathing room",
-    prompt: "A glass that is half-full of water is tilted to one side. Does the surface of the water stay flat and level, or does it tilt along with the glass?",
+    prompt: "A glass that is half full of water is tilted to one side. Does the surface of the water stay flat and level, or does it tilt along with the glass?",
     image: "images/q12.png",
     choices: ["It stays flat and horizontal", "It tilts along with the glass"],
     correctIndex: 0,

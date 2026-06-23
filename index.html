@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Educational AI Tutor Research Study</title>
+  <title>Educational AI Tutor: Research Study</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -13,7 +13,7 @@
        ================================================================= -->
   <section id="screen-intro" class="screen active">
     <div class="card">
-      <h1>Educational AI Tutor Research Study</h1>
+      <h1>Educational AI Tutor: Research Study</h1>
       <p class="lead">
         Thank you for taking part. This is a short research study evaluating a new
         <strong>educational AI tutor</strong>. You will answer a set of brief
@@ -21,7 +21,7 @@
       </p>
       <p>
         Your responses are recorded for research purposes only. There are no right
-        answers we are testing <em>you</em> on, we are studying how people work
+        answers we are testing <em>you</em> on. We are studying how people work
         through the questions. Please answer as you genuinely see fit.
       </p>
 
@@ -29,7 +29,7 @@
         <label for="age-input">Before we begin, please enter your age.</label>
         <input type="number" id="age-input" min="1" max="120" inputmode="numeric"
                placeholder="e.g. 21" />
-        <p class="field-error" id="age-error" hidden>Please enter a valid age (1-120) to continue.</p>
+        <p class="field-error" id="age-error" hidden>Please enter a valid age (1–120) to continue.</p>
       </div>
 
       <label class="consent">
@@ -61,7 +61,7 @@
        ================================================================= -->
   <section id="screen-quiz" class="screen">
     <header class="topbar">
-      <div class="topbar-title">Educational AI Tutor — Reasoning Quiz</div>
+      <div class="topbar-title">Educational AI Tutor: Reasoning Quiz</div>
       <div class="topbar-progress"><span id="progress-text">Question 1 of 14</span></div>
     </header>
 
@@ -69,6 +69,27 @@
       <!-- Main question column -->
       <main class="quiz-main">
         <nav class="qnav" id="qnav" aria-label="Question navigator"></nav>
+
+        <!-- AI tutor panel (landscape, sits on top of the question; AI group only) -->
+        <aside class="ai-sidebar" id="ai-sidebar" aria-label="AI tutor">
+          <div class="ai-header">
+            <div class="ai-dot"></div>
+            <div>
+              <div class="ai-name">AI Tutor</div>
+              <div class="ai-status" id="ai-status">Online</div>
+            </div>
+            <div class="ai-lock" title="The assistant stays open for the whole study">🔒</div>
+          </div>
+          <div class="ai-body" id="ai-body"></div>
+          <div class="ai-confidence" id="ai-confidence" hidden>
+            <p class="conf-label">How confident are you in the AI's response?</p>
+            <div class="likert" id="likert"></div>
+            <div class="likert-ends">
+              <span>1 · Not at all</span>
+              <span>5 · Completely</span>
+            </div>
+          </div>
+        </aside>
 
         <article class="question-card">
           <div class="question-meta">
@@ -87,31 +108,6 @@
           <button class="btn btn-primary" id="finish-btn">Finish &amp; submit</button>
         </div>
       </main>
-
-      <!-- AI sidebar (only shown for the AI group) -->
-      <aside class="ai-sidebar" id="ai-sidebar" aria-label="AI tutor">
-        <div class="ai-header">
-          <div class="ai-dot"></div>
-          <div>
-            <div class="ai-name">AI Tutor</div>
-            <div class="ai-status" id="ai-status">Online</div>
-          </div>
-          <div class="ai-lock" title="The assistant stays open for the whole study">🔒</div>
-        </div>
-
-        <div class="ai-body" id="ai-body">
-          <!-- thinking / response injected here -->
-        </div>
-
-        <div class="ai-confidence" id="ai-confidence" hidden>
-          <p class="conf-label">How confident are you in the AI's response?</p>
-          <div class="likert" id="likert"></div>
-          <div class="likert-ends">
-            <span>1 · Not at all</span>
-            <span>5 · Completely</span>
-          </div>
-        </div>
-      </aside>
     </div>
   </section>
 
@@ -125,7 +121,7 @@
 
       <div class="done-code">
         <span>Completion code</span>
-        <strong id="completion-code">—</strong>
+        <strong id="completion-code"></strong>
       </div>
 
       <div id="upload-status" class="upload-status" hidden></div>
@@ -134,7 +130,7 @@
         <summary>Researcher data (for the study team)</summary>
         <p class="muted">
           A copy of this participant's full data was downloaded automatically. You can
-          also re-download it or copy it below.
+          also download it again or copy it below.
         </p>
         <div class="done-controls">
           <button class="btn btn-ghost" id="download-json">Download JSON</button>

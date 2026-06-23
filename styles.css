@@ -258,7 +258,8 @@ body:not(.has-ai) .ai-sidebar { display: none; }
 .ai-sidebar {
   display: flex;
   flex-direction: column;
-  margin-bottom: 20px;
+  margin-top: 20px;
+  margin-bottom: 0;
   background: #fff;
   border: 1.5px solid var(--accent);          /* accent border makes it stand out */
   border-radius: var(--radius);

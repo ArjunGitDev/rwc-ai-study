@@ -70,7 +70,18 @@
       <main class="quiz-main">
         <nav class="qnav" id="qnav" aria-label="Question navigator"></nav>
 
-        <!-- AI tutor panel (landscape, sits on top of the question; AI group only) -->
+        <article class="question-card">
+          <div class="question-meta">
+            <span id="q-number" class="q-number">Question 1</span>
+          </div>
+          <h2 class="question-prompt" id="q-prompt"></h2>
+          <figure class="question-figure" id="q-figure" hidden>
+            <img id="q-image" alt="Question figure" />
+          </figure>
+          <div class="choices" id="q-choices"></div>
+        </article>
+
+        <!-- AI tutor panel (landscape, sits below the question; AI group only) -->
         <aside class="ai-sidebar" id="ai-sidebar" aria-label="AI tutor">
           <div class="ai-header">
             <div class="ai-dot"></div>
@@ -90,17 +101,6 @@
             </div>
           </div>
         </aside>
-
-        <article class="question-card">
-          <div class="question-meta">
-            <span id="q-number" class="q-number">Question 1</span>
-          </div>
-          <h2 class="question-prompt" id="q-prompt"></h2>
-          <figure class="question-figure" id="q-figure" hidden>
-            <img id="q-image" alt="Question figure" />
-          </figure>
-          <div class="choices" id="q-choices"></div>
-        </article>
 
         <div class="quiz-controls">
           <button class="btn btn-ghost" id="prev-btn">← Previous</button>

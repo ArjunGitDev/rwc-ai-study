@@ -8,7 +8,7 @@
 // central collector (e.g. a Google Apps Script web-app URL, Formspree, or any
 // endpoint that accepts a JSON POST). Leave "" to rely on the auto-download
 // + localStorage copy only. See README.md for setup.
-const DATA_ENDPOINT = "https://script.google.com/macros/s/AKfycbzVBu_KSB4VUcYTkJfyzqKRQfue9XFBLa4MioDWsUn7SM6qYHUh6oYfg98AJi7yeisQ9Q/exec";
+const DATA_ENDPOINT = "";
 
 // How long the AI "thinks" before revealing its predetermined answer (ms).
 const AI_THINK_MS = 2000;
@@ -33,7 +33,7 @@ const session = {
   schemaVersion: 2,
   group: null,                 // "AI" | "control"
   assignment: null,            // details of the time-based coin flip
-  ageRange: null,
+  age: null,
   startedAtIso: null,
   studyStartEpoch: null,       // hi-res epoch ms captured at "Begin"
   finishedAtIso: null,
@@ -84,13 +84,16 @@ function showScreen(id) {
 
 /* ============================ SCREEN 1: INTRO =========================== */
 
-const ageSelect   = document.getElementById("age-range");
+const ageInput    = document.getElementById("age-input");
 const ageError    = document.getElementById("age-error");
 const consentBox  = document.getElementById("consent-check");
 const beginBtn    = document.getElementById("begin-btn");
 
 beginBtn.addEventListener("click", () => {
-  if (!ageSelect.value) { ageError.hidden = false; ageSelect.focus(); return; }
+  const ageVal = parseInt(ageInput.value, 10);
+  if (!ageInput.value || isNaN(ageVal) || ageVal < 1 || ageVal > 120) {
+    ageError.hidden = false; ageInput.focus(); return;
+  }
   ageError.hidden = true;
   if (!consentBox.checked) { consentBox.focus(); return; }
 
@@ -105,7 +108,7 @@ beginBtn.addEventListener("click", () => {
   session.participantId = makeParticipantId(micros);
   session.studyStartEpoch = startEpoch;
   session.startedAtIso = new Date().toISOString();
-  session.ageRange = ageSelect.value;
+  session.age = ageVal;
   session.group = group;
   session.assignment = {
     epochMsHiRes: startEpoch,        // e.g. 1718900000123.456
@@ -119,7 +122,7 @@ beginBtn.addEventListener("click", () => {
   session.environment = collectEnvironment();
 
   logEvent("study_start", {
-    group, ageRange: session.ageRange, assignment: session.assignment
+    group, age: session.age, assignment: session.assignment
   });
 
   document.body.classList.toggle("has-ai", group === "AI");
@@ -505,10 +508,17 @@ function buildSummary() {
 
     // event-derived metrics
     const clicks = session.events.filter(e => e.type === "answer_click" && e.qid === q.id);
+    const firstView = session.events.find(e => e.type === "question_view" && e.qid === q.id);
     const aiResp = session.events.find(e => e.type === "ai_response" && e.qid === q.id);
-    const firstClickAfterAi = aiResp
-      ? clicks.find(c => c.tEpoch >= aiResp.tEpoch)
-      : null;
+    const firstClickAfterAi = aiResp ? clicks.find(c => c.tEpoch >= aiResp.tEpoch) : null;
+
+    // "Time to answer": for the AI group, ms from the AI response to the first
+    // answer click (the fact-checking latency / key DV); for the control group,
+    // ms from first viewing the question to the first answer click.
+    const msAfterAi  = firstClickAfterAi ? firstClickAfterAi.data.msSinceAiResponse : null;
+    const msFromView = (firstView && clicks.length)
+      ? +(clicks[0].tEpoch - firstView.tEpoch).toFixed(1) : null;
+    const timeMs = session.group === "AI" ? msAfterAi : msFromView;
 
     return {
       qid: q.id,
@@ -520,19 +530,22 @@ function buildSummary() {
       isCorrect: correct,
       aiShown: session.group === "AI" ? (session.aiShown[q.id] != null) : null,
       aiCorrect: session.group === "AI" ? q.ai.correct : null,
+      aiAnswerIndex: session.group === "AI" ? q.ai.answerIndex : null,
       aiAnswerLabel: session.group === "AI" ? q.choices[q.ai.answerIndex] : null,
       followedAi: session.group === "AI" && final != null
                     ? (final === q.ai.answerIndex) : null,
       confidence: session.group === "AI" ? (session.confidence[q.id] ?? null) : null,
       numAnswerClicks: clicks.length,
       numAnswerChanges: Math.max(0, clicks.filter(c => c.data.isChange).length),
-      msToFirstAnswerAfterAi: firstClickAfterAi ? firstClickAfterAi.data.msSinceAiResponse : null
+      msToFirstAnswerAfterAi: msAfterAi,
+      msFirstAnswerFromView: msFromView,
+      timeMs: timeMs
     };
   });
 
   return {
     group: session.group,
-    ageRange: session.ageRange,
+    age: session.age,
     score: score,
     total: QUESTIONS.length,
     perQuestion: perQuestion
@@ -591,11 +604,11 @@ document.getElementById("copy-json").addEventListener("click", () => {
 
 function eventsToCsv() {
   const header = [
-    "participantId", "group", "ageRange",
+    "participantId", "group", "age",
     "eventType", "qid", "tEpochMs", "tRelMs", "iso", "details"
   ];
   const rows = session.events.map(e => [
-    session.participantId, session.group, session.ageRange,
+    session.participantId, session.group, session.age,
     e.type, e.qid == null ? "" : e.qid,
     e.tEpoch, e.tRel == null ? "" : e.tRel, e.iso,
     JSON.stringify(e.data)

@@ -60,7 +60,8 @@ p { margin: 0 0 0.9rem; }
 /* ---------- Form fields ---------- */
 .field { margin: 22px 0 16px; }
 .field label { display: block; font-weight: 600; margin-bottom: 8px; }
-select {
+select,
+.field input[type="number"] {
   width: 100%;
   padding: 11px 12px;
   font-size: 1rem;
@@ -70,7 +71,8 @@ select {
   border-radius: 8px;
   appearance: none;
 }
-select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+select:focus,
+.field input[type="number"]:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
 .field-error { color: #c0392b; font-size: 0.88rem; margin: 6px 0 0; }
 
 .consent {
